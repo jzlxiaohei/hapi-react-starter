@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+require("babel-polyfill")
+
+var config = require('../config')
+if (!config.isProduction) {
+    require("babel-register");
+}
+
+var server = config.isProduction ? require('../build/app') : require('../src/app');
+server.start(function () {
+    console.log('api server running at:', server.select('api').info.uri)
+    console.log('web server running at:', server.select('web').info.uri)
+})

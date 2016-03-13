@@ -1,0 +1,14 @@
+{
+  "parser": "babel-eslint",
+  "extends": "airbnb",
+  "rules": {
+    "comma-dangle": [
+      2,
+      "never"
+    ],
+    "new-cap":1,
+    "indent":[2,4],
+    "semi":0,
+    "prefer-template":1
+  }
+}

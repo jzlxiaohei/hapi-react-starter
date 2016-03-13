@@ -1,0 +1,13 @@
+{
+  "apps" : [{
+    "name"        : "your-app-name",
+    "script"      : "./bin/www",
+    "watch"       : false,
+    "env": {
+      "NODE_ENV": "production"
+    },
+    "instances"  : -1,
+    "exec_mode"  : "cluster_mode",
+    "max_memory_restart":"1G"
+  }]
+}
