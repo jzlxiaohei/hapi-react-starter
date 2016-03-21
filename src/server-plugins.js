@@ -6,7 +6,8 @@
 const path = require('path')
 const Inert = require('inert')
 const Vision = require('vision')
-const HapiSwagger = require('hapi-swagger');
+const HapiSwagger = require('hapi-swagger')
+
 
 const ViewHelper = require('./utils/view-helper')
 const assetsPath = path.join(__dirname, './webpack-assets.json')
@@ -65,17 +66,61 @@ module.exports = function (server) {
         })
     })
 
+    initAuthCookie(server)
+
     /**
      * async handler
      */
-    server.register([require('hapi-async-handler')], errProcess);
+    server.register([require('hapi-async-handler')], errProcess)
 
 
+    /**
+     * log
+     */
     initLog(server)
 
+    /**
+     * swagger,only for swaggerEnabled:true in config
+     */
     if($config.swaggerEnabled){
         initSwagger(server)
     }
+
+}
+
+function initAuthCookie(server){
+
+    server.register(require('hapi-auth-cookie'),function(err){
+        if(err) throw err
+        const cache = server.cache({
+            cache:'redis',
+            segment:'sessions'
+        })
+        server.app.cache = cache
+        server.auth.strategy('session','cookie',true,{
+            password:$config.sessionPassword,
+            //cookie:'h_session_id',
+            isSecure:false,
+            ttl:10000,
+            validateFunc:(request,session,callback)=>{
+                cache.get(session.sid,(err,cached)=>{
+
+                    if (err) {
+                        return callback(err, false)
+                    }
+
+                    console.log(cached)
+
+                    if (!cached) {
+                        return callback(null, false)
+                    }
+                    //验证成功,更新session过期时间
+                    request.cookieAuth.set({ sid: session.sid })
+                    return callback(null, true, cached)
+                })
+            }
+        })
+    })
 }
 
 function initLog(server) {
@@ -103,7 +148,7 @@ function initSwagger(server){
             'title': 'Test API Documentation',
             'version': '1.0.0',
         }
-    };
+    }
     server.register([
         Inert,
         Vision,
@@ -111,5 +156,5 @@ function initSwagger(server){
             'register': HapiSwagger,
             'options': options
         }
-    ], errProcess);
+    ], errProcess)
 }

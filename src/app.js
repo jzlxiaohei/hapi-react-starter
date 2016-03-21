@@ -9,27 +9,23 @@ const Hapi = require('hapi')
 /** global $config **/
 const internals = {
     servers: {
-        web: {
             port: $config.webPort,
             host: $config.webHost,
-            labels: ['web']
-        },
-        api: {
-            port: $config.apiPort,
-            host: $config.apiHost,
-            labels: ['api']
-        }
-    },
-    options: {
-        files: {
-            relativeTo: __dirname
-        }
     }
 }
 
-const server = new Hapi.Server()
-server.connection(internals.servers.web)
-server.connection(internals.servers.api)
+const server = new Hapi.Server({
+    cache:[
+        {
+            name:'redis',
+            engine:require('catbox-redis'),
+            host: $config.redisHost,
+            port: $config.redisPort,
+            partition:'hapi-cache'
+        }
+    ]
+})
+server.connection(internals.servers)
 
 require("./common-var/server-var")(server)
 
@@ -39,6 +35,24 @@ require("./common-var/server-var")(server)
  * @description server级 plugins初始化
  */
 require('./server-plugins')(server)
+
+
+/**
+ *
+ */
+server.ext('onRequest',function(req,reply){
+    global.req = req
+    return reply.continue()
+})
+server.ext('onPreHandler',function(req,reply){
+    console.log(222)
+    return reply.continue()
+})
+server.ext('onPostHandler',function(req,reply){
+    console.log(333)
+    return reply.continue()
+})
+
 
 /**
  * init router plugins

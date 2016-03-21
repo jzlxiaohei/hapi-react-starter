@@ -8,7 +8,8 @@ if (!config.isProduction) {
 }
 
 var server = config.isProduction ? require('../build/app') : require('../src/app');
-server.start(function () {
-    console.log('api server running at:', server.select('api').info.uri)
-    console.log('web server running at:', server.select('web').info.uri)
+server.start(function (err) {
+    if(err)throw err
+    
+    console.log('api server running at:', server.info.uri)
 })

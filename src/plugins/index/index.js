@@ -10,14 +10,17 @@ exports.register = function (server, options, next) {
         method: "get",
         path: '/',
         config:{
-            description:'首页',
-            notes:'首页',
+            description:'get posts list', notes:'注意这是首页',
             tags:['api'],
             validate:{
                 query:{
-                    a : joi.number().required().description('test a')
+                    offset : joi.number().integer().min(0).default(0).description('query offset'),
+                    limit: joi.number().integer().default(10).description('query limit'),
+                    order:joi.string().default('-created_at').description('query order')
                 }
-            }
+                //payload,path params
+            },
+            auth:false
         },
         handler:{
             async: async function(req,reply){
@@ -27,6 +30,43 @@ exports.register = function (server, options, next) {
                     title: text,
                     react: reactMarkUp
                 })
+            }
+        }
+    })
+
+
+    server.route({
+        method: "get",
+        path: '/login',
+        config:{
+            auth:{mode:"try"}
+        },
+        handler:{
+            async: async function(req,reply){
+                console.log(req.auth)
+                if(req.auth.isAuthenticated){
+                    return reply.redirect('/')
+                }
+                console.log(req.yar)
+                req.server.app.cache.set("1",{name:'zilong'},$config.sessionTtl,(err)=>{
+                    if(err){return reply(err)}
+                    req.cookieAuth.set({sid:"1"})
+                    reply("success")
+                })
+            }
+        }
+    })
+
+    server.route({
+        method: "get",
+        path: '/logout',
+        config:{
+            auth:false
+        },
+        handler:{
+            async: async function(req,reply){
+                req.cookieAuth.clear()
+                reply.redirect('/login')
             }
         }
     })
